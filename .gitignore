@@ -1,3 +1,7 @@
+# project
+.envVarsHelper.sh
+env.auto.tfvars
+onboard-debug*.sh
 # Local .terraform directories
 **/.terraform/*
 
