@@ -34,20 +34,20 @@ This example deploys a single BIG-IQ centralized manager in Azure cloud using te
        ```
 - populate env.auto.tfvars
     - ```hcl
-    # set location
-    # variable location { default = "usgovvirginia" }
-    # variable region { default = "USGov Virginia" }
-    # variable prefix { default = "scca" }
-    # required
-    location = "eastus2"
-    region = "East US2"
-    prefix = "bigiq-tf"
-    bigIqLicenseKey1= "BIG-IQ-KEY-HERE"
-    subscriptionID= "my-azure-subscriptionID"
-    adminSourceRange= "192.168.2.0/24"
-    # optional
-    #adminAccountName="xadmin"
-    #adminAccountPassword="mypassword!!"
+        # set location
+        # variable location { default = "usgovvirginia" }
+        # variable region { default = "USGov Virginia" }
+        # variable prefix { default = "scca" }
+        # required
+        location = "eastus2"
+        region = "East US2"
+        prefix = "bigiq-tf"
+        bigIqLicenseKey1= "BIG-IQ-KEY-HERE"
+        subscriptionID= "my-azure-subscriptionID"
+        adminSourceRange= "192.168.2.0/24"
+        # optional
+        #adminAccountName="xadmin"
+        #adminAccountPassword="mypassword!!"
       ```
 - set environment variables for your current shell
     - ```bash
