@@ -1,13 +1,13 @@
 
 # Create a Resource Group for the new Virtual Machine
 resource "azurerm_resource_group" "main" {
-  name     = "${var.prefix}_rg"
+  name     = "${var.prefix}rg${var.buildSuffix}"
   location = "${var.location}"
 }
 
 # Create a Virtual Network within the Resource Group
 resource "azurerm_virtual_network" "main" {
-  name                = "${var.prefix}-network"
+  name                = "${var.prefix}network${var.buildSuffix}"
   address_space       = ["${var.cidr}"]
   resource_group_name = "${azurerm_resource_group.main.name}"
   location            = "${azurerm_resource_group.main.location}"
@@ -15,7 +15,7 @@ resource "azurerm_virtual_network" "main" {
 
 # Create the Management Subnet within the Virtual Network
 resource "azurerm_subnet" "mgmt" {
-  name                 = "mgmt"
+  name                 = "${var.prefix}mgmt${var.buildSuffix}"
   virtual_network_name = "${azurerm_virtual_network.main.name}"
   resource_group_name  = "${azurerm_resource_group.main.name}"
   address_prefix       = "${var.subnets["subnet1"]}"
@@ -23,7 +23,7 @@ resource "azurerm_subnet" "mgmt" {
 
 # Create the External Subnet within the Virtual Network
 resource "azurerm_subnet" "External" {
-  name                 = "External"
+  name                 = "${var.prefix}External${var.buildSuffix}"
   virtual_network_name = "${azurerm_virtual_network.main.name}"
   resource_group_name  = "${azurerm_resource_group.main.name}"
   address_prefix       = "${var.subnets["subnet2"]}"
@@ -31,7 +31,7 @@ resource "azurerm_subnet" "External" {
 
 # Create the Internal Subnet within the Virtual Network
 resource "azurerm_subnet" "Internal" {
-  name                 = "Internal"
+  name                 = "${var.prefix}Internal${var.buildSuffix}"
   virtual_network_name = "${azurerm_virtual_network.main.name}"
   resource_group_name  = "${azurerm_resource_group.main.name}"
   address_prefix       = "${var.subnets["subnet3"]}"
@@ -47,7 +47,7 @@ locals {
 
 # Create a Public IP for the Virtual Machines
 resource "azurerm_public_ip" "lbpip" {
-  name                         = "${var.prefix}-lb-pip"
+  name                         = "${var.prefix}lb-pip${var.buildSuffix}"
   location                     = "${azurerm_resource_group.main.location}"
   resource_group_name          = "${azurerm_resource_group.main.name}"
   allocation_method = "Dynamic"
@@ -56,7 +56,7 @@ resource "azurerm_public_ip" "lbpip" {
 
 # Create Availability Set
 resource "azurerm_availability_set" "avset" {
-  name                         = "${var.prefix}avset"
+  name                         = "${var.prefix}avset${var.buildSuffix}"
   location                     = "${azurerm_resource_group.main.location}"
   resource_group_name          = "${azurerm_resource_group.main.name}"
   platform_fault_domain_count  = 2
@@ -66,7 +66,7 @@ resource "azurerm_availability_set" "avset" {
 
 # Create Azure LB
 resource "azurerm_lb" "lb" {
-  name                = "${var.prefix}lb"
+  name                = "${var.prefix}lb${var.buildSuffix}"
   location            = "${azurerm_resource_group.main.location}"
   resource_group_name = "${azurerm_resource_group.main.name}"
 
@@ -77,7 +77,7 @@ resource "azurerm_lb" "lb" {
 }
 
 resource "azurerm_lb_backend_address_pool" "backend_pool" {
-  name                = "BackendPool1"
+  name                = "${var.prefix}BackendPool1${var.buildSuffix}"
   resource_group_name = "${azurerm_resource_group.main.name}"
   loadbalancer_id     = "${azurerm_lb.lb.id}"
 }
@@ -85,7 +85,7 @@ resource "azurerm_lb_backend_address_pool" "backend_pool" {
 resource "azurerm_lb_probe" "lb_probe" {
   resource_group_name = "${azurerm_resource_group.main.name}"
   loadbalancer_id     = "${azurerm_lb.lb.id}"
-  name                = "tcpProbe"
+  name                = "${var.prefix}tcpProbe${var.buildSuffix}"
   protocol            = "tcp"
   port                = 443
   interval_in_seconds = 5
@@ -93,7 +93,7 @@ resource "azurerm_lb_probe" "lb_probe" {
 }
 
 resource "azurerm_lb_rule" "https_rule" {
-  name                           = "HTTPRule"
+  name                           = "${var.prefix}HTTPRule${var.buildSuffix}"
   resource_group_name            = "${azurerm_resource_group.main.name}"
   loadbalancer_id                = "${azurerm_lb.lb.id}"
   protocol                       = "tcp"
@@ -108,7 +108,7 @@ resource "azurerm_lb_rule" "https_rule" {
 }
 
 resource "azurerm_lb_rule" "ssh_rule" {
-  name                           = "SSHRule"
+  name                           = "${var.prefix}SSHRule${var.buildSuffix}"
   resource_group_name            = "${azurerm_resource_group.main.name}"
   loadbalancer_id                = "${azurerm_lb.lb.id}"
   protocol                       = "tcp"
@@ -124,7 +124,7 @@ resource "azurerm_lb_rule" "ssh_rule" {
 
 # Create a Network Security Group with some rules
 resource "azurerm_network_security_group" "main" {
-  name                = "${var.prefix}-nsg"
+  name                = "${var.prefix}nsg${var.buildSuffix}"
   location            = "${azurerm_resource_group.main.location}"
   resource_group_name = "${azurerm_resource_group.main.name}"
   # https://support.f5.com/csp/article/K15612
@@ -282,7 +282,7 @@ security_rule {
 
 # Create a Public IP for the Virtual Machines
 resource "azurerm_public_ip" "f5vmpip01" {
-  name                = "${var.prefix}-vm01-mgmt-pip01"
+  name                = "${var.prefix}vm01-mgmt-pip01${var.buildSuffix}"
   location            = "${azurerm_resource_group.main.location}"
   resource_group_name = "${azurerm_resource_group.main.name}"
   allocation_method   = "Dynamic"
@@ -292,7 +292,7 @@ resource "azurerm_public_ip" "f5vmpip01" {
   }
 }
 resource "azurerm_public_ip" "f5vmpip02" {
-  name                = "${var.prefix}-vm02-mgmt-pip02"
+  name                = "${var.prefix}vm02-mgmt-pip02${var.buildSuffix}"
   location            = "${azurerm_resource_group.main.location}"
   resource_group_name = "${azurerm_resource_group.main.name}"
   allocation_method   = "Dynamic"
@@ -304,7 +304,7 @@ resource "azurerm_public_ip" "f5vmpip02" {
 
 # Create the first network interface card for Management 
 resource "azurerm_network_interface" "vm01-mgmt-nic" {
-  name                      = "${var.prefix}-vm01-mgmt-nic"
+  name                      = "${var.prefix}vm01-mgmt-nic${var.buildSuffix}"
   location                  = "${azurerm_resource_group.main.location}"
   resource_group_name       = "${azurerm_resource_group.main.name}"
   network_security_group_id = "${azurerm_network_security_group.main.id}"
@@ -328,7 +328,7 @@ resource "azurerm_network_interface" "vm01-mgmt-nic" {
 }
 
 resource "azurerm_network_interface" "vm02-mgmt-nic" {
-  name                      = "${var.prefix}-vm02-mgmt-nic"
+  name                      = "${var.prefix}vm02-mgmt-nic${var.buildSuffix}"
   location                  = "${azurerm_resource_group.main.location}"
   resource_group_name       = "${azurerm_resource_group.main.name}"
   network_security_group_id = "${azurerm_network_security_group.main.id}"
@@ -353,7 +353,7 @@ resource "azurerm_network_interface" "vm02-mgmt-nic" {
 
 # Create the second network interface card for External
 resource "azurerm_network_interface" "vm01-ext-nic" {
-  name                = "${var.prefix}-vm01-ext-nic"
+  name                = "${var.prefix}vm01-ext-nic${var.buildSuffix}"
   location            = "${azurerm_resource_group.main.location}"
   resource_group_name = "${azurerm_resource_group.main.name}"
   network_security_group_id = "${azurerm_network_security_group.main.id}"
@@ -388,7 +388,7 @@ resource "azurerm_network_interface" "vm01-ext-nic" {
 }
 
 resource "azurerm_network_interface" "vm02-ext-nic" {
-  name                = "${var.prefix}-vm02-ext-nic"
+  name                = "${var.prefix}vm02-ext-nic${var.buildSuffix}"
   location            = "${azurerm_resource_group.main.location}"
   resource_group_name = "${azurerm_resource_group.main.name}"
   network_security_group_id = "${azurerm_network_security_group.main.id}"
@@ -423,7 +423,7 @@ resource "azurerm_network_interface" "vm02-ext-nic" {
 }
 
 # resource "azurerm_network_interface" "backend01-ext-nic" {
-#   name                = "${var.prefix}-backend01-ext-nic"
+#   name                = "${var.prefix}-backend01-ext-nic${var.buildSuffix}"
 #   location            = "${azurerm_resource_group.main.location}"
 #   resource_group_name = "${azurerm_resource_group.main.name}"
 #   network_security_group_id = "${azurerm_network_security_group.main.id}"
@@ -448,7 +448,7 @@ resource "azurerm_network_interface" "vm02-ext-nic" {
 
 # Create the third network interface card for Internal
 resource "azurerm_network_interface" "vm01-int-nic" {
-  name                = "${var.prefix}-vm01-int-nic"
+  name                = "${var.prefix}vm01-int-nic${var.buildSuffix}"
   location            = "${azurerm_resource_group.main.location}"
   resource_group_name = "${azurerm_resource_group.main.name}"
   network_security_group_id = "${azurerm_network_security_group.main.id}"
@@ -474,7 +474,7 @@ resource "azurerm_network_interface" "vm01-int-nic" {
 }
 
 resource "azurerm_network_interface" "vm02-int-nic" {
-  name                = "${var.prefix}-vm02-int-nic"
+  name                = "${var.prefix}vm02-int-nic${var.buildSuffix}"
   location            = "${azurerm_resource_group.main.location}"
   resource_group_name = "${azurerm_resource_group.main.name}"
   network_security_group_id = "${azurerm_network_security_group.main.id}"
@@ -552,7 +552,7 @@ resource "local_file" "onboard_debug" {
 
 # Create F5 BIGIQ VMs
 resource "azurerm_virtual_machine" "f5vm01" {
-  name                         = "${var.prefix}-f5vm01"
+  name                         = "${var.prefix}f5vm01${var.buildSuffix}"
   location                     = "${azurerm_resource_group.main.location}"
   resource_group_name          = "${azurerm_resource_group.main.name}"
   primary_network_interface_id = "${azurerm_network_interface.vm01-mgmt-nic.id}"
@@ -576,7 +576,7 @@ resource "azurerm_virtual_machine" "f5vm01" {
   }
 
   storage_os_disk {
-    name              = "${var.prefix}vm01-osdisk"
+    name              = "${var.prefix}vm01-osdisk${var.buildSuffix}"
     caching           = "ReadWrite"
     create_option     = "FromImage"
     managed_disk_type = "Standard_LRS"
@@ -623,7 +623,7 @@ resource "azurerm_virtual_machine" "f5vm01" {
 }
 
 # resource "azurerm_virtual_machine" "f5vm02" {
-#   name                         = "${var.prefix}-f5vm02"
+#   name                         = "${var.prefix}f5vm02${var.buildSuffix}"
 #   location                     = "${azurerm_resource_group.main.location}"
 #   resource_group_name          = "${azurerm_resource_group.main.name}"
 #   primary_network_interface_id = "${azurerm_network_interface.vm02-mgmt-nic.id}"
@@ -646,7 +646,7 @@ resource "azurerm_virtual_machine" "f5vm01" {
 #   }
 
 #   storage_os_disk {
-#     name              = "${var.prefix}vm02-osdisk"
+#     name              = "${var.prefix}vm02-osdisk${var.buildSuffix}"
 #     caching           = "ReadWrite"
 #     create_option     = "FromImage"
 #     managed_disk_type = "Standard_LRS"
@@ -731,7 +731,7 @@ resource "azurerm_virtual_machine" "f5vm01" {
 
 # Run Startup Script
 resource "azurerm_virtual_machine_extension" "f5vm01-run-startup-cmd" {
-  name                 = "${var.environment}-f5vm01-run-startup-cmd"
+  name                 = "${var.environment}f5vm01-run-startup-cmd${var.buildSuffix}"
 #   depends_on           = ["azurerm_virtual_machine.f5vm01", "azurerm_virtual_machine.backendvm"]
   depends_on           = ["azurerm_virtual_machine.f5vm01"]
   location             = "${var.region}"
@@ -758,7 +758,7 @@ resource "azurerm_virtual_machine_extension" "f5vm01-run-startup-cmd" {
 }
 
 # resource "azurerm_virtual_machine_extension" "f5vm02-run-startup-cmd" {
-#   name                 = "${var.environment}-f5vm02-run-startup-cmd"
+#   name                 = "${var.environment}-f5vm02-run-startup-cmd${var.buildSuffix}"
 #   depends_on           = ["azurerm_virtual_machine.f5vm02", "azurerm_virtual_machine.backendvm"]
 #   location             = "${var.region}"
 #   resource_group_name  = "${azurerm_resource_group.main.name}"
@@ -782,3 +782,28 @@ resource "azurerm_virtual_machine_extension" "f5vm01-run-startup-cmd" {
 #     application    = "${var.application}"
 #   }
 # }
+
+
+resource "null_resource" "wait" {
+   #https://ilhicas.com/2019/08/17/Terraform-local-exec-run-always.html
+   triggers = {
+    always_run = "${timestamp()}"
+  }
+  provisioner "local-exec" {
+    command = <<-EOF
+        checks=0
+        while [[ "$checks" -lt 4 ]]; do
+            echo "waiting on: https://${azurerm_public_ip.f5vmpip01.ip_address}"  
+            curl -sk --retry 15 --retry-connrefused --retry-delay 10 https://${azurerm_public_ip.f5vmpip01.ip_address}
+        if [ $? == 0 ]; then
+            echo "mgmt ready"
+            break
+        fi
+        echo "mgmt not ready yet"
+        let checks=checks+1
+        sleep 10
+        done
+    EOF
+    interpreter = ["bash", "-c"]
+  }
+}

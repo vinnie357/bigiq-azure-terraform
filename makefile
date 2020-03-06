@@ -31,7 +31,17 @@ plan:
 	-e ARM_TENANT_ID=${ARM_TENANT_ID} \
 	${CONTAINER_IMAGE} \
 	sh -c "terraform init; terraform plan"
-
+outputs:
+	@#terraform output,
+	@echo "output"
+	@docker run --rm -it \
+	--volume ${DIR}:/workspace \
+	-e ARM_CLIENT_ID=${ARM_CLIENT_ID} \
+	-e ARM_CLIENT_SECRET=${ARM_CLIENT_SECRET} \
+	-e ARM_SUBSCRIPTION_ID=${ARM_SUBSCRIPTION_ID} \
+	-e ARM_TENANT_ID=${ARM_TENANT_ID} \
+	${CONTAINER_IMAGE} \
+	sh -c "terraform output"
 azure:
 	@#terraform init, plan, apply
 	@echo "init, plan, apply"

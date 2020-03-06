@@ -1,6 +1,11 @@
-
 # Azure Environment
-variable prefix { default = "bigiq" }
+variable prefix { 
+    description = "resource prefix"
+    default = "bigiq-" 
+}
+variable "buildSuffix" {
+  description = "resource suffix"
+}
 variable uname { default = "xadmin" }
 variable upassword { default = "2018F5Networks!!" }
 variable location { default = "eastus2" }

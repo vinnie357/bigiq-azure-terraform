@@ -16,3 +16,8 @@ variable "adminSourceRange" {
     description = "network or address with CIDR where admin traffic will source from ex: 192.168.2.0/24"
   
 }
+
+variable "projectPrefix" {
+  description = "resource prefix"
+  default = "mybigiq-"
+}
