@@ -163,7 +163,7 @@ function safe_download {
 }
 # get token with admin creds
 getToken () {
-    token=$(curl -sk --data "$credsPayload" --url $localHost$mgmt_port$authUrl | jq -r .token.token)
+    token=$(curl -sk --header "Content-Type:application/json" --data "$credsPayload" --url $localHost$mgmt_port$authUrl | jq -r .token.token)
     echo "$token"
 }
 # set token header for curl
@@ -218,13 +218,13 @@ getDossier () {
  echo "$dossier"
 }
 licenseActivate () {
-    curl -sk --header "$(setToken)" --data "$1" --url $localHost$mgmt_port$licenseUrl
+    curl -sk --header "Content-Type:application/json" --header "$(setToken)" --data "$1" --url $localHost$mgmt_port$licenseUrl
     #curl -sk --header "$(setToken)" --data "$licensePayload" --url $localHost$mgmt_port$licenseUrl
     #curl -sk --header "$(setToken)" --data "$eulaPayload7" --url $localHost$mgmt_port$licenseUrl
     #curl -sk --header "$(setToken)" --data "$eulaPayload6" --url $localHost$mgmt_port$licenseUrl
 }
 licenseRegistration () {
-    curl -sk --header "$(setToken)" -X PUT --data "$1" --url $localHost$mgmt_port$licenseRegistrationUrl
+    curl -sk --header "Content-Type:application/json" --header "$(setToken)" -X PUT --data "$1" --url $localHost$mgmt_port$licenseRegistrationUrl
 }
 checkLicense () {
     #status=$(curl -sk --header "$(echo "setToken")" --url $localHost$mgmt_port$licenseUrl | jq .status )
@@ -293,36 +293,36 @@ EOF
 echo "$licenseFilePayload"
 }
 setHostName () {
-  curl -sk --header "$(setToken)" -X PATCH --data "$hostNamePayload" --url $localHost$mgmt_port$hostNameUrl   
+  curl -sk --header "Content-Type:application/json" --header "$(setToken)" -X PATCH --data "$hostNamePayload" --url $localHost$mgmt_port$hostNameUrl   
 }
 setMasterKey () {
-  curl -sk --header "$(setToken)" -X POST --data "$masterKeyPayload" --url $localHost$mgmt_port$masterKeyUrl   
+  curl -sk --header "Content-Type:application/json" --header "$(setToken)" -X POST --data "$masterKeyPayload" --url $localHost$mgmt_port$masterKeyUrl   
 }
 createDiscoveryVlan () {
- curl -sk --header "$(setToken)" --header "content-type: application/json" -X POST --data "$vlanPayload" --url $localHost$mgmt_port$vlanUrl 
+ curl -sk --header "Content-Type:application/json" --header "$(setToken)" -X POST --data "$vlanPayload" --url $localHost$mgmt_port$vlanUrl 
 }
 createDiscoverySelfIp () {
- curl -sk --header "$(setToken)" --header "content-type: application/json" -X POST --data "$selfIpPayload" --url $localHost$mgmt_port$selfIpUrl 
+ curl -sk --header "Content-Type:application/json" --header "$(setToken)" -X POST --data "$selfIpPayload" --url $localHost$mgmt_port$selfIpUrl 
 }
 setDiscoveryAddress () {
-    curl -sk --header "$(setToken)" --header "content-type: application/json" -X PUT --data "$discoveryPayload" --url $localHost$mgmt_port$discoveryUrl
+    curl -sk --header "Content-Type:application/json" --header "$(setToken)" -X PUT --data "$discoveryPayload" --url $localHost$mgmt_port$discoveryUrl
 }
 setDns () {
- curl -vk --header "$(setToken)" --header "content-type: application/json" -X PATCH --data "$dnsPayload" --url $localHost$mgmt_port$dnsUrl
+ curl -sk  --header "Content-Type:application/json" --header "$(setToken)" -X PATCH --data "$dnsPayload" --url $localHost$mgmt_port$dnsUrl
 }
 setNtp () {
- curl -vk --header "$(setToken)" --header "content-type: application/json" -X PATCH --data "$ntpPayload" --url $localHost$mgmt_port$ntpUrl
+ curl -sk --header "Content-Type:application/json" --header "$(setToken)"-X PATCH --data "$ntpPayload" --url $localHost$mgmt_port$ntpUrl
 }
 submitSetup () {
-    curl -vk --header "$(setToken)" -X POST --data "$systemSetupPayload" --url $localHost$mgmt_port$systemSetupUrl
+    curl -sk --header "Content-Type:application/json" --header "$(setToken)" -X POST --data "$systemSetupPayload" --url $localHost$mgmt_port$systemSetupUrl
 }
 setPasswords () {
  if [[ "$(checkVersion)" == "7" ]]; then
-    curl -vk --header "$(setToken)" -X POST --data "$passwordPayload7" --url $localHost$mgmt_port$passwordUrl
+    curl -sk --header "Content-Type:application/json" --header "$(setToken)" -X POST --data "$passwordPayload7" --url $localHost$mgmt_port$passwordUrl
  else
-    curl -vk --header "$(setToken)" -X POST --data "$passwordRootPayload6" --url $localHost$mgmt_port$passwordRootUrl6
-    curl -vk --header "$(setToken)" -X POST --data "$passwordAdminPayload6" --url $localHost$mgmt_port$passwordAdminUrl6
-    curl -vk --header "$(setToken)" -X POST --data "$passwordChangedPayload6" --url $localHost$mgmt_port$passwordChangedUrl6
+    curl -sk --header "Content-Type:application/json" --header "$(setToken)" -X POST --data "$passwordRootPayload6" --url $localHost$mgmt_port$passwordRootUrl6
+    curl -sk --header "Content-Type:application/json" --header "$(setToken)" -X POST --data "$passwordAdminPayload6" --url $localHost$mgmt_port$passwordAdminUrl6
+    curl -sk --header "Content-Type:application/json" --header "$(setToken)" -X POST --data "$passwordChangedPayload6" --url $localHost$mgmt_port$passwordChangedUrl6
  fi
 }
 function RestCall () {
@@ -477,7 +477,7 @@ EOF
 selfIpPayload7=$(cat -<<EOF
 {
     "name": "self_discovery",
-    "address": "${discoveryAddressSelfip}}",
+    "address": "${discoveryAddressSelfip}",
     "vlan": "/Common/discovery"
 }
 EOF
