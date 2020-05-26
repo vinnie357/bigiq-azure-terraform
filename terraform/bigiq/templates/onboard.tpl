@@ -61,6 +61,7 @@ admin_username='${uname}'
 admin_password='${upassword}'
 
 tmsh create auth user $admin_username password $admin_password shell bash partition-access add { all-partitions { role admin } };
+tmsh modify auth user $admin_username shell bash partition-access add { all-partitions { role admin } };
 tmsh list auth user $admin_username
 echo "root:"$admin_password"" | chpasswd
 echo "admin:"$admin_password"" | chpasswd
@@ -111,7 +112,6 @@ eulaUrl7="/mgmt/setup/license/accept-eula"
 eulaUrl6="/mgmt/setup/license/accept-eula"
 licenseRegistrationUrl6="/mgmt/tm/shared/licensing/registration"
 licenseRegistrationUrl7="/mgmt/setup/license"
-licenseUrl="/mgmt/setup/license"
 personalityUrl="/mgmt/setup/personality"
 base_url="https://raw.githubusercontent.com/F5Networks"
 base_dir="/config/cloud"
@@ -293,7 +293,11 @@ EOF
 echo "$licenseFilePayload"
 }
 setHostName () {
-  curl -sk --header "Content-Type:application/json" --header "$(setToken)" -X PATCH --data "$hostNamePayload" --url $localHost$mgmt_port$hostNameUrl   
+    if [[ "$(checkVersion)" == "7" ]]; then
+        curl -sk --header "Content-Type:application/json" --header "$(setToken)" -X POST --data "$hostNamePayload" --url $localHost$mgmt_port$hostNameUrl  
+    else
+        curl -sk --header "Content-Type:application/json" --header "$(setToken)" -X PATCH --data "$hostNamePayload" --url $localHost$mgmt_port$hostNameUrl  
+    fi
 }
 setMasterKey () {
   curl -sk --header "Content-Type:application/json" --header "$(setToken)" -X POST --data "$masterKeyPayload" --url $localHost$mgmt_port$masterKeyUrl   
@@ -305,20 +309,32 @@ createDiscoverySelfIp () {
  curl -sk --header "Content-Type:application/json" --header "$(setToken)" -X POST --data "$selfIpPayload" --url $localHost$mgmt_port$selfIpUrl 
 }
 setDiscoveryAddress () {
-    curl -sk --header "Content-Type:application/json" --header "$(setToken)" -X PUT --data "$discoveryPayload" --url $localHost$mgmt_port$discoveryUrl
+     if [[ "$(checkVersion)" == "7" ]]; then
+        curl -sk --header "Content-Type:application/json" --header "$(setToken)" -X POST --data "$discoveryPayload" --url $localHost$mgmt_port$discoveryUrl
+    else
+        curl -sk --header "Content-Type:application/json" --header "$(setToken)" -X PUT --data "$discoveryPayload" --url $localHost$mgmt_port$discoveryUrl
+    fi
 }
 setDns () {
- curl -sk  --header "Content-Type:application/json" --header "$(setToken)" -X PATCH --data "$dnsPayload" --url $localHost$mgmt_port$dnsUrl
+    if [[ "$(checkVersion)" == "7" ]]; then
+        curl -sk  --header "Content-Type:application/json" --header "$(setToken)" -X POST --data "$dnsPayload" --url $localHost$mgmt_port$dnsUrl
+    else
+        curl -sk  --header "Content-Type:application/json" --header "$(setToken)" -X PATCH --data "$dnsPayload" --url $localHost$mgmt_port$dnsUrl
+    fi
 }
 setNtp () {
- curl -sk --header "Content-Type:application/json" --header "$(setToken)"-X PATCH --data "$ntpPayload" --url $localHost$mgmt_port$ntpUrl
+    if [[ "$(checkVersion)" == "7" ]]; then
+        curl -sk --header "Content-Type:application/json" --header "$(setToken)" -X POST --data "$ntpPayload" --url $localHost$mgmt_port$ntpUrl
+    else
+        curl -sk --header "Content-Type:application/json" --header "$(setToken)" -X PATCH --data "$ntpPayload" --url $localHost$mgmt_port$ntpUrl
+    fi
 }
 submitSetup () {
     curl -sk --header "Content-Type:application/json" --header "$(setToken)" -X POST --data "$systemSetupPayload" --url $localHost$mgmt_port$systemSetupUrl
 }
 setPasswords () {
  if [[ "$(checkVersion)" == "7" ]]; then
-    curl -sk --header "Content-Type:application/json" --header "$(setToken)" -X POST --data "$passwordPayload7" --url $localHost$mgmt_port$passwordUrl
+    curl -sk --header "Content-Type:application/json" --header "$(setToken)" -X POST --data "$passwordPayload7" --url $localHost$mgmt_port$passwordRootUrl7
  else
     curl -sk --header "Content-Type:application/json" --header "$(setToken)" -X POST --data "$passwordRootPayload6" --url $localHost$mgmt_port$passwordRootUrl6
     curl -sk --header "Content-Type:application/json" --header "$(setToken)" -X POST --data "$passwordAdminPayload6" --url $localHost$mgmt_port$passwordAdminUrl6
@@ -413,7 +429,7 @@ EOF
 dnsPayload7=$(cat -<<EOF
 {
     "servers": ["$dnsServers"],
-    "search": ["$dnsSearchDomains]"
+    "search": ["$dnsSearchDomains"]
 }
 EOF
 )
