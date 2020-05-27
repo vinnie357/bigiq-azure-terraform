@@ -5,7 +5,6 @@ data "azurerm_public_ip" "lbpip" {
   resource_group_name = "${azurerm_resource_group.main.name}"
   depends_on          = ["azurerm_virtual_machine_extension.f5vm01-run-startup-cmd"]
 }
-
 output "sg_id" { value = "${azurerm_network_security_group.main.id}" }
 output "sg_name" { value = "${azurerm_network_security_group.main.name}" }
 output "mgmt_subnet_gw" { value = "${local.mgmt_gw}" }
@@ -16,7 +15,7 @@ output "f5vm01_id" { value = "${azurerm_virtual_machine.f5vm01.id}"  }
 output "f5vm01_mgmt_private_ip" { value = "${azurerm_network_interface.vm01-mgmt-nic.private_ip_address}" }
 output "f5vm01_mgmt_public_ip" { 
     depends_on          = ["azurerm_virtual_machine_extension.f5vm01-run-startup-cmd"]
-    value = "${azurerm_public_ip.f5vmpip01.ip_address}" 
+    value = data.azurerm_public_ip.managementPublicAddress.ip_address
 }
 output "f5vm01_ext_private_ip" { value = "${azurerm_network_interface.vm01-ext-nic.private_ip_address}" }
 

@@ -782,9 +782,14 @@ resource "azurerm_virtual_machine_extension" "f5vm01-run-startup-cmd" {
 #     application    = "${var.application}"
 #   }
 # }
-
+data "azurerm_public_ip" "managementPublicAddress" {
+    name               = azurerm_public_ip.f5vmpip01.name
+    resource_group_name = azurerm_resource_group.main.name
+    depends_on          = ["azurerm_virtual_machine_extension.f5vm01-run-startup-cmd"]
+}
 
 resource "null_resource" "wait" {
+   depends_on           = ["azurerm_virtual_machine_extension.f5vm01-run-startup-cmd"]
    #https://ilhicas.com/2019/08/17/Terraform-local-exec-run-always.html
    triggers = {
     always_run = "${timestamp()}"
@@ -793,8 +798,8 @@ resource "null_resource" "wait" {
     command = <<-EOF
         checks=0
         while [[ "$checks" -lt 4 ]]; do
-            echo "waiting on: https://${azurerm_public_ip.f5vmpip01.ip_address}"  
-            curl -sk --retry 15 --retry-connrefused --retry-delay 10 https://${azurerm_public_ip.f5vmpip01.ip_address}
+            echo "waiting on: https://${data.azurerm_public_ip.managementPublicAddress.ip_address}"  
+            curl -sk --retry 15 --retry-connrefused --retry-delay 10 https://${data.azurerm_public_ip.managementPublicAddress.ip_address}
         if [ $? == 0 ]; then
             echo "mgmt ready"
             break

@@ -180,9 +180,9 @@ function waitIq () {
   do
     status=$( curl -sk --header "$(setToken)" https://localhost:$mgmt_port$systemInfoUrl | jq .)
     statusType=$(echo $status | jq -r type)
-    if [ $statusType == "object" ]; then
+    if [ "$statusType" == "object" ]; then
       state=$( echo $status | jq -r .available)
-      if [ $state == "true" ]; then
+      if [ "$state" == "true" ]; then
         echo "ready"
         break
       else
@@ -522,6 +522,14 @@ EOF
 )
 
 #license
+if [ "$bigIqLicenseKey1" == "" ]; then
+licensePayload=$(cat -<<EOF
+  {
+      "licenseText": "skipLicense:true"
+  }
+EOF
+)
+else
 licensePayload=$(cat -<<EOF
   {
       "baseRegKey": "${ bigIqLicenseKey1 }",
@@ -530,6 +538,7 @@ licensePayload=$(cat -<<EOF
   }
 EOF
 )
+fi
 
 #personality
 personality=$(cat -<<EOF
@@ -623,39 +632,40 @@ echo " version $(checkVersion)"
 # license BiqIq
 #
 echo "license bigiq"
-#license
-licensePayload=$(cat -<<EOF
-  {
-      "baseRegKey": "${ bigIqLicenseKey1 }",
-      "addOnKeys": [],
-      "activationMethod": "AUTOMATIC"
-  }
-EOF
-)
 # send license payload
-licenseActivate "$licensePayload"
-# check license install state
-while [[ $count -le 4 ]]
-  do
-    if [[ "$(checkLicense)" == "eula" ]]; then
-        eula=$(curl -sk --header "$(setToken)" --url $localHost$mgmt_port$licenseUrl | jq -r .eulaText)
-        licenseActivate "$(getEulaPayload)"
-        echo "send eula"
-    fi
-    if [[ "$(checkLicense)" == "failed" ]]; then
-        echo "check license key"
-    fi
-    if [[ "$(checkLicense)" == "complete" ]]; then
-        licenseData=$(curl -sk --header "$(setToken)" --url $localHost$mgmt_port$licenseUrl | jq .licenseText)
-        # license
-        licensePayload="{\"licenseText\": $licenseData}"
-        # install license
-        echo "install license"
-        licenseRegistration "$(getLicenseFilePayload)"
+if [ "$bigIqLicenseKey1" == "" ]; then
+    echo "bigiq-license manager"
+    licenseRegistration "$licensePayload"
+else
+    echo "bigiq-cm"
+    licenseActivate "$licensePayload"
+    # check license install state
+    while [[ $count -le 4 ]]
+    do
+        if [[ "$(checkLicense)" == "eula" ]]; then
+            eula=$(curl -sk --header "$(setToken)" --url $localHost$mgmt_port$licenseUrl | jq -r .eulaText)
+            licenseActivate "$(getEulaPayload)"
+            echo "send eula"
         fi
-    sleep 2
-    count=$[$count+1]
-done
+        if [[ "$(checkLicense)" == "failed" ]]; then
+            if [ "$bigIqLicenseKey1" == "" ]; then
+                licenseRegistration "$licensePayload"
+            else
+                echo "check license key"
+            fi
+        fi
+        if [[ "$(checkLicense)" == "complete" ]]; then
+            licenseData=$(curl -sk --header "$(setToken)" --url $localHost$mgmt_port$licenseUrl | jq .licenseText)
+            # license
+            licensePayload="{\"licenseText\": $licenseData}"
+            # install license
+            echo "install license"
+            licenseRegistration "$(getLicenseFilePayload)"
+            fi
+        sleep 2
+        count=$[$count+1]
+    done
+fi
 # wait for mcpd after license
 waitMcpd
 #
