@@ -224,7 +224,14 @@ licenseActivate () {
     #curl -sk --header "$(setToken)" --data "$eulaPayload6" --url $localHost$mgmt_port$licenseUrl
 }
 licenseRegistration () {
-    curl -sk --header "Content-Type:application/json" --header "$(setToken)" -X PUT --data "$1" --url $localHost$mgmt_port$licenseRegistrationUrl
+    if [[ "$(checkVersion)" == "7" ]]; then
+        curl -sk --header "Content-Type:application/json" --header "$(setToken)" -X POST --data "$1" --url $localHost$mgmt_port$licenseRegistrationUrl
+        # after id is set the url changes back to the 6 url
+        curl -sk --header "Content-Type:application/json" --header "$(setToken)" -X PUT --data "$1" --url $localHost$mgmt_port$licenseRegistrationUrl6 
+    else
+        curl -sk --header "Content-Type:application/json" --header "$(setToken)" -X PUT --data "$1" --url $localHost$mgmt_port$licenseRegistrationUrl
+    fi
+    
 }
 checkLicense () {
     #status=$(curl -sk --header "$(echo "setToken")" --url $localHost$mgmt_port$licenseUrl | jq .status )
